@@ -1,21 +1,29 @@
 {
-  "name": "logseq-pomodoro-timer",
+  "name": "logseq-reddit-hot-news",
   "version": "0.0.1",
-  "description": "A joyful pomodoro timer for block task item 🍅",
-  "author": "©Charlie",
-  "license": "MIT",
+  "description": "Read r/logseq hot news using Logseq blocks.",
+  "main": "dist/index.html",
+  "targets": {
+    "main": false
+  },
+  "default": "dist/index.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/logseq/logseq-plugin-samples/tree/master/logseq-reddit-hot-news"
+  },
+  "author": "Logseq",
   "scripts": {
     "dev": "parcel ./index.html --public-url ./",
     "build": "parcel build --public-url . --no-source-maps index.html"
   },
-  "devDependencies": {
-    "@logseq/libs": "^0.0.1-alpha.31",
-    "parcel": "^2.0.0"
-  },
-  "dependencies": {},
+  "license": "MIT",
   "logseq": {
-    "id": "_km4vf6swk",
-    "main": "dist/index.html",
-    "icon": "./logo.png"
+    "id": "_rw0rys037"
+  },
+  "dependencies": {
+    "@logseq/libs": "^0.0.1-alpha.22"
+  },
+  "devDependencies": {
+    "parcel": "^2.0.0"
   }
 }

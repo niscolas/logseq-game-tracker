@@ -1,164 +1,88 @@
 import '@logseq/libs'
+import { LSPluginBaseInfo } from '@logseq/libs/dist/libs'
+
+const delay = (t = 100) => new Promise(r => setTimeout(r, t))
+
+async function loadRedditData () {
+  const endpoint = 'https://www.reddit.com/r/logseq/hot.json'
+
+  const { data: { children } } = await fetch(endpoint).then(res => res.json())
+  const ret = children || []
+
+  return ret.map(({ data }, i) => {
+    const { title, selftext, url, ups, downs, num_comments } = data
+
+    return `${i}. [${title}](${url}) [:small.opacity-50 "🔥 ${ups} 💬 ${num_comments}"]
+collapsed:: true    
+> ${selftext}`
+  })
+}
 
 /**
  * main entry
+ * @param baseInfo
  */
-async function main () {
-  logseq.App.showMsg('hello, pomodoro timer :)')
+function main (baseInfo: LSPluginBaseInfo) {
+  let loading = false
 
-  const genRandomStr = () => Math.random().
-    toString(36).
-    replace(/[^a-z]+/g, '').
-    substr(0, 5)
-
-  // models
   logseq.provideModel({
-    async startPomoTimer (e: any) {
-      const { pomoId, slotId, blockUuid } = e.dataset
-      const startTime = Date.now()
+    async loadReddits () {
 
-      const block = await logseq.Editor.getBlock(blockUuid)
-      const flag = `{{renderer :pomodoro_${pomoId}`
-      const newContent = block?.content?.replace(`${flag}}}`,
-        `${flag},${startTime}}}`)
-      if (!newContent) return
-      await logseq.Editor.updateBlock(blockUuid, newContent)
-      renderTimer({ pomoId, slotId, startTime })
-    },
+      const info = await logseq.App.getUserConfigs()
+      if (loading) return
+
+      const pageName = 'reddit-logseq-hots-news'
+      const blockTitle = (new Date()).toLocaleString()
+
+      logseq.App.pushState('page', { name: pageName })
+
+      await delay(300)
+
+      loading = true
+
+      try {
+        const currentPage = await logseq.Editor.getCurrentPage()
+        if (currentPage?.originalName !== pageName) throw new Error('page error')
+
+        const pageBlocksTree = await logseq.Editor.getCurrentPageBlocksTree()
+        let targetBlock = pageBlocksTree[0]!
+
+        targetBlock = await logseq.Editor.insertBlock(targetBlock.uuid, '🚀 Fetching r/logseq ...', { before: true })
+
+        let blocks = await loadRedditData()
+
+        blocks = blocks.map(it => ({ content: it }))
+
+        await logseq.Editor.insertBatchBlock(targetBlock.uuid, blocks, {
+          sibling: false
+        })
+
+        await logseq.Editor.updateBlock(targetBlock.uuid, `## 🔖 r/logseq - ${blockTitle}`)
+      } catch (e) {
+        logseq.App.showMsg(e.toString(), 'warning')
+        console.error(e)
+      } finally {
+        loading = false
+      }
+    }
+  })
+
+  logseq.App.registerUIItem('toolbar', {
+    key: 'logseq-reddit',
+    template: `
+      <a data-on-click="loadReddits"
+         class="button">
+        <i class="ti ti-brand-reddit"></i>
+      </a>
+    `
   })
 
   logseq.provideStyle(`
-    .pomodoro-timer-btn {
-       border: 1px solid var(--ls-border-color); 
-       white-space: initial; 
-       padding: 2px 4px; 
-       border-radius: 4px; 
-       user-select: none;
-       cursor: default;
-       display: flex;
-       align-content: center;
-    }
-    
-    .pomodoro-timer-btn.is-start:hover {
-      opacity: .8;
-    }
-    
-    .pomodoro-timer-btn.is-start:active {
-      opacity: .6;
-    }
-    
-    .pomodoro-timer-btn.is-start {
-      padding: 3px 6px;
-      cursor: pointer;
-    }
-    
-    .pomodoro-timer-btn.is-pending {
-      padding-left: 6px;
-      width: 84px;
-      background-color: #f6dbdb;
-      border-color: #edbdbd;
-      color: #cd3838;
-    }
-    
-    .pomodoro-timer-btn.is-done {
-      width: auto;
-      background-color: #defcf0;
-      border-color: #9ddbc7;
-      color: #0F9960;
+    [data-injected-ui=logseq-reddit-${baseInfo.id}] {
+      display: flex;
+      align-items: center;
     }
   `)
-
-  // entries
-  logseq.Editor.registerSlashCommand('🍅 Pomodoro Timer', async () => {
-    await logseq.Editor.insertAtEditingCursor(
-      `{{renderer :pomodoro_${genRandomStr()}}} `,
-    )
-  })
-
-  /**
-   * @param pomoId
-   * @param slotId
-   * @param startTime
-   * @param durationMins
-   */
-  function renderTimer ({
-    pomoId, slotId,
-    startTime, durationMins,
-  }: any) {
-    if (!startTime) return
-    const durationTime = (durationMins || 25) * 60 // default 20 minus
-
-    const keepKey = `${logseq.baseInfo.id}--${pomoId}`
-    const keepOrNot = () => logseq.App.queryElementById(keepKey)
-
-    function _render (init: boolean) {
-      const nowTime = Date.now()
-      const offsetTime = Math.floor((nowTime - startTime) / 1000)
-      const isDone = durationTime < offsetTime
-      const humanTime = () => {
-        const offset = durationTime - offsetTime
-        const minus = Math.floor(offset / 60)
-        const secs = offset % 60
-        return `${(minus < 10 ? '0' : '') + minus}:${(secs < 10 ? '0' : '') +
-        secs}`
-      }
-      const provideUi = () => logseq.provideUI({
-        key: pomoId,
-        slot: slotId,
-        reset: true,
-        template: `
-        ${!isDone ?
-          `<a class="pomodoro-timer-btn is-pending">
-            🍅 ${humanTime()}
-          </a>` :
-          `<a class="pomodoro-timer-btn is-done">
-            🍅 ✅
-          </a>`
-        }
-      `,
-      })
-
-      Promise.resolve(init || keepOrNot()).then((res) => {
-        if (res) {
-          provideUi()
-
-          !isDone && setTimeout(() => {
-            _render(false)
-          }, 1000)
-        }
-      })
-    }
-
-    _render(true)
-  }
-
-  logseq.App.onMacroRendererSlotted(({ slot, payload }) => {
-    const [type, startTime, durationMins] = payload.arguments
-    if (!type?.startsWith(':pomodoro_')) return
-    const identity = type.split('_')[1]?.trim()
-    if (!identity) return
-    const pomoId = 'pomodoro-timer-start_' + identity
-
-    if (!startTime?.trim()) {
-      return logseq.provideUI({
-        key: pomoId,
-        slot, reset: true,
-        template: `
-          <button
-          class="pomodoro-timer-btn is-start"
-          data-slot-id="${slot}" 
-          data-pomo-id="${identity}"
-          data-block-uuid="${payload.uuid}"
-          data-on-click="startPomoTimer">
-          🍅 START
-          </button>
-        `,
-      })
-    }
-
-    // reset slot ui
-    renderTimer({ pomoId, slotId: slot, startTime, durationMins })
-  })
 }
 
 // bootstrap

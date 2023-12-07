@@ -66,7 +66,7 @@
   resolved "https://registry.yarnpkg.com/@lmdb/lmdb-win32-x64/-/lmdb-win32-x64-2.8.5.tgz#8233e8762440b0f4632c47a09b1b6f23de8b934c"
   integrity sha512-4wvrf5BgnR8RpogHhtpCPJMKBmvyZPhhUtEwMJbXh0ni2BucpfF07jlmyM11zRqQ2XIq6PbC2j7W7UCCcm1rRQ==
 
-"@logseq/libs@^0.0.1-alpha.31":
+"@logseq/libs@^0.0.1-alpha.22":
   version "0.0.1-alpha.35"
   resolved "https://registry.yarnpkg.com/@logseq/libs/-/libs-0.0.1-alpha.35.tgz#bd382c9cd209ba03a9d289d7b042c96f6b34ab9d"
   integrity sha512-KikcqgolrTFqlEWoiprAdRsz9kwUX3XwcjzWa9usBGLwgGCpq6E/1UvvhQweJJAXAGDUVUHIzdJ6Cm6pvuOBWQ==

@@ -1,8 +1,6 @@
-## Pomodoro Timer Sample
+## Reddit Hot News Sample
 
-What's it? https://en.wikipedia.org/wiki/Pomodoro_Technique
-
-This is sample that show you how to use slot ui to render block content in part :)
+This is a sample that show you how to manipulate blocks :)
 
 ### Demo
 
@@ -12,23 +10,22 @@ This is sample that show you how to use slot ui to render block content in part 
 
 [![npm version](https://badge.fury.io/js/%40logseq%2Flibs.svg)](https://badge.fury.io/js/%40logseq%2Flibs)
 
-##### Logseq.App
+##### [Logseq.Editor](https://logseq.github.io/plugins/interfaces/ieditorproxy.html)
 
-- `registerSlashCommand: (tag: string, action: BlockCommandCallback | Array<SlashCommandAction>) => boolean`
-- `onMacroRendererSlotted: IUserSlotHook<{ payload: { arguments: Array<string>, uuid: string, [key: string]: any } }>`
+- `insertBlock: (
+  srcBlock: BlockIdentity, content: string, opts?: Partial<{ before: boolean; sibling: boolean; properties: {} }>
+  ) => Promise<BlockEntity | null>`
+- `insertBatchBlock: (
+  srcBlock: BlockIdentity, batch: IBatchBlock | Array<IBatchBlock>, opts?: Partial<{ before: boolean, sibling: boolean }>
+  ) => Promise<Array<BlockEntity> | null>`
+- `updateBlock: (
+  srcBlock: BlockIdentity, content: string, opts?: Partial<{ properties: {} }>
+  ) => Promise<void>`
+- `removeBlock: (
+  srcBlock: BlockIdentity
+  )`
 
-> ⚠️ The current implementation may have performance issues,
-> especially when there are too many running timer instances.
-> That's because time ticker needs messaging frequently between
-> host and plugin sandbox. We are exploring better solutions for
-> the rendering of block content partly.
- 
 ### Running the Sample
 
-> 🏷 Minimal version of App [0.4.6](https://github.com/logseq/logseq/releases/tag/0.4.6) !
- 
-- `yarn && yarn build` in terminal to install dependencies.
+- `npm install && npm run build` in terminal to install dependencies.
 - `Load unpacked plugin` in Logseq Desktop client.
-
-### License
-MIT

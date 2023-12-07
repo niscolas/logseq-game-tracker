@@ -17,7 +17,11 @@
       in
         with pkgs; {
           devShells.default = mkShell {
-            buildInputs = [yarn];
+            buildInputs = [
+              nodePackages.eslint
+              nodePackages.typescript-language-server
+              yarn
+            ];
           };
         }
     );
